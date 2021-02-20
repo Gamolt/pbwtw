@@ -1,10 +1,4 @@
-#lettura file da fixare
-f = open("test.txt", "r")
-l = []
-for i in f:
-    l.append(i.rstrip("\n"))
-
-f.close()
+import sys
 
 def collapse(a, d):
     aa, dd = ([] for i in range(2))
@@ -13,7 +7,7 @@ def collapse(a, d):
     while j < len(a):
         while j+1 != len(a) and a[j] == a[j+1]:
             j += 1
-        
+            
         aa.append(a[j])
         dd.append(d[j])
 
@@ -34,8 +28,6 @@ def compute_next_array(xk, ak, dk, t, k):
     for l in range(t):  
         u.append(0)
         p.append(k+1)
-    print('u: ', u)
-    print('p: ', u)
 
     for i in range(dim):
         allele = xk[ak[i]]
@@ -43,11 +35,8 @@ def compute_next_array(xk, ak, dk, t, k):
         for l in range(t):
             if dk[i] > p[l]:
                 p[l] = dk[i]
-                print('Enter in dk check')
 
-        if allele == '*':       
-            print(allele)
-            print(a, d, p, u)
+        if allele == t:     
             for m in range(t):
                 a[m].append(ak[i])
                 d[m].append(p[m])
@@ -58,15 +47,9 @@ def compute_next_array(xk, ak, dk, t, k):
             d[allele].append(p[allele])
             p[allele] = 0
             u[allele] += 1
-
-            print(i, ' step')
-            print('a ', a)
-            print('d ', d)
-            print('p ', p)
-            print('u ', u)
-
+  
     for i in range(t):
-        print(a[i])
+      
         for i, l in zip(collapse(a[i], d[i]), [a_star, d_star]):
             l.append(i)
       
@@ -74,5 +57,30 @@ def compute_next_array(xk, ak, dk, t, k):
 
     return flatter(a_star), flatter(d_star)
 
-print(compute_next_array([0,1,0], [0,1,2], [0,0,0], 2, 1))
-#print(collapse([0,1,0], [0, 2, 1], [2, 0, 2]))
+
+def main(t, file):
+    a, d = ([] for i in range(2))
+    f = open(file, 'r')
+    sequence = []
+    for i in f:
+        sequence.append(i.rstrip('\n'))
+
+    f.close()
+    #vado a cambiare il valore '*' con il valore t, mi serve un valore int
+    for i in range(len(sequence)):
+        sequence[i] = [int(j) if j is not '*' else t for j in sequence[i]]
+    
+    sequence = list(map(list, zip(*sequence)))
+   
+    a.append([i for i in range(len(sequence[0]))])
+    d.append([0 for i in range(len(sequence[0]))])
+
+    for i in range(len(sequence)):
+        for i, l in zip(compute_next_array(sequence[i], [k for k in a[i]], [j for j in d[i]], t, i), [a, d]):
+            l.append(i)
+    
+    return a, d
+
+a, d = main(int(sys.argv[1]), sys.argv[2])
+print('a vector: ', a[1:])
+print('d vector: ', d[1:])
