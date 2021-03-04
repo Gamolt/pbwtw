@@ -18,7 +18,7 @@ def search_first_block(a, d, j):
                 
     return block
 
-def search_block(a, d, j, b):
+def search_block(a, d, j, b, wildcard):
     block = []
     
     i = 0
@@ -35,10 +35,10 @@ def search_block(a, d, j, b):
             block.append((a[i:r+1], max(d[i+1:r+1]), j))
  
                 
-    return check_block(b, block, j)
+    return check_block(b, consensus_check(block, wildcard), j, wildcard)
 
 #b è la lista di blocchi precedenti, block è quella nuova
-def check_block(b, block, n):
+def check_block(b, block, n, wildcard):
     k = list(b)
     l = list(block)
 
@@ -88,7 +88,9 @@ def check_block(b, block, n):
             if count < len(j):
                 k.remove(j)
                 l.append((j[0], j[1], l[0][2]))
-    return k, l
+
+
+    return consensus_check(k, wildcard), l
 
 def consensus_check(block, wildcard):
     b = list(block)
@@ -115,7 +117,7 @@ def collapse(a, d):
         j += 1
 
     return aa, dd 
-    
+
 #xk = valori colonne reali, ak array prefissi, dk array divergenza,
 #t numero simbolo all'interno dell'alfabeto, k posizione in cui viene
 #effettuato il controllo.
@@ -194,13 +196,14 @@ def main(t, file):
             block.append(search_first_block(a[i],d[i],i))
         else:
 
-            block[-1], t = search_block(a[i],d[i],i, block[-1])
+            block[-1], t = search_block(a[i],d[i],i, block[-1], wildcard_list)
             block.append(t)
+    
     flatter = lambda l: [i for li in l for i in li]
 
-    block = consensus_check(flatter(block), wildcard_list)                
+    #block = consensus_check(flatter(block), wildcard_list)                
 
-    return a, d, block
+    return a, d, flatter(block)
 
 a, d, b = main(int(sys.argv[1]), sys.argv[2])
 print('a vector: ', a[1:])
