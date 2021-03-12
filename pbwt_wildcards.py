@@ -1,10 +1,9 @@
 import sys
+import time
 
-
-
+start_time = time.time()
 def search_first_block(a, d, j):
     block = []
-    
     i = 0
     x,y = ([] for i in range(2))
     for r in range(1,len(d)):
@@ -15,7 +14,6 @@ def search_first_block(a, d, j):
         
         if r == len(d)-1:
             block.append((a[i:r+1], d[r-1], j))
-                
     return block
 
 def search_block(a, d, j, b, wildcard):
@@ -45,19 +43,15 @@ def check_block(b, block, n, wildcard):
 
     for j in b:
         count = len([x for x in j[0] if x in block[0][0]])
- 
         if count == len(j[0]):
             if len(block[0][0]) == count:
                 k.remove(j)
             else:
                 k.remove(j)
-                if j ==([0, 2, 3], 1, 2): print('second')
                 l.append((j[0], j[1], l[0][2]))
 
-            if j ==([0, 2, 3], 1, 2): print('first')
 
         elif (len(j[0]) < count or len(j[0]) > count) and count != 0:
-            if j ==([0, 2, 3], 1, 2): print('third')
             zero = []
             one = []
 
@@ -99,7 +93,11 @@ def consensus_check(block, wildcard):
         for j in range(i[1], i[2]):
                 res = all(elem in wildcard[j] for elem in i[0])
                 if res:
-                    b.remove(i)
+                    try:
+                        b.remove(i)
+                    
+                    except Exception:
+                        pass
 
     return b
 
@@ -134,7 +132,8 @@ def compute_next_array(xk, ak, dk, t, k):
 
     for i in range(dim):
         allele = xk[ak[i]]
-    
+        
+
         for l in range(t):
             if dk[i] > p[l]:
                 p[l] = dk[i]
@@ -152,7 +151,8 @@ def compute_next_array(xk, ak, dk, t, k):
             u[allele] += 1
   
     for i in range(t):
-      
+
+
         for i, l in zip(collapse(a[i], d[i]), [a_star, d_star]):
             l.append(i)
       
@@ -161,7 +161,7 @@ def compute_next_array(xk, ak, dk, t, k):
     return flatter(a_star), flatter(d_star)
 
 
-def main(t, file):
+def main(t, dim, file):
     a, d = ([] for i in range(2))
     f = open(file, 'r')
     sequence = []
@@ -171,18 +171,18 @@ def main(t, file):
     f.close()
     wildcard_list = ([[] for i in range(len(sequence[0]))])
     block = []
-
+    print(len(sequence))
+    print(len(sequence[1]))
     #vado a cambiare il valore '*' con il valore t, mi serve un valore int
     for i in range(len(sequence)):
-        sequence[i] = [int(j) if j is not '*' else t for j in sequence[i]]
-    
+        sequence[i] = [int(j) if j != '*' else t for j in sequence[i]]
     #wildcard_list avrà all'interno le posizioni in cui si troveranno le wildcard.
     for i in range(len(sequence)):
         for j in range(len(sequence[i])):
             if sequence[i][j] == t:
                 wildcard_list[j].append(i)
     sequence = list(map(list, zip(*sequence)))
-
+    
    
     a.append([i for i in range(len(sequence[0]))])
     d.append([0 for i in range(len(sequence[0]))])
@@ -195,17 +195,34 @@ def main(t, file):
         if i == 1:
             block.append(search_first_block(a[i],d[i],i))
         else:
-
+            print('search block ', i) 
             block[-1], t = search_block(a[i],d[i],i, block[-1], wildcard_list)
             block.append(t)
     
     flatter = lambda l: [i for li in l for i in li]
 
-    #block = consensus_check(flatter(block), wildcard_list)                
+    block = flatter(block)
+    b = []
+    t = 0
+    for i in block:
+        if len(set(i[0])) != 1 and dim != 0 and len(set(i[0])):
+            if (len(set(i[0])) * (i[2]-i[1])) >= dim:
+                b.append((list(set(i[0])), i[1], i[2]))
+        if dim == 0 and len(set(i[0])):
+            b.append((list(set(i[0])), i[1], i[2]))
 
-    return a, d, flatter(block)
+    for i in b:
+        for j in b:
+            if i != j and i[0] == j[0] and i[1] <= j[1] and i[2] >= j[2]:
+                
+                b.remove(j)
 
-a, d, b = main(int(sys.argv[1]), sys.argv[2])
-print('a vector: ', a[1:])
-print('d vector: ', d[1:])
-print('number b: ', b)
+    
+    return a, d, b
+
+a, d, b = main(int(sys.argv[1]), int(sys.argv[2]), sys.argv[3])
+elapsed_time = time.time() - start_time
+print('d vector: ', len(d[-1]))
+print('number b: ', len(b))
+#print('b: ', b)
+print('time passed: ', elapsed_time/60)
